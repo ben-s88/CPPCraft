@@ -39,6 +39,15 @@
     <ClCompile Include="source\TerrainGenerator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="source\gBuffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ShaderPass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\DefaultShaderPass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\Game.h">
@@ -65,12 +74,24 @@
     <ClInclude Include="source\TerrainGenerator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="source\gBuffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\ShaderPass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\DefaultShaderPass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="source\shaders\vert.glsl" />
     <None Include="source\shaders\frag.glsl" />
     <None Include="shaders\frag.glsl" />
     <None Include="shaders\vert.glsl" />
+    <None Include="shaders\gBufferFrag.glsl" />
+    <None Include="shaders\deferredFrag.glsl" />
+    <None Include="shaders\deferredVert.glsl" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="CPPcraft.rc">

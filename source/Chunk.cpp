@@ -72,13 +72,38 @@ void Chunk::generateMesh()
 					0.0f + x, 0.0f + y, 0.0f + z,   uvs[6], uvs[7], 0.f, -1.f, 0.f }
 					);
 
-				meshVIs.insert(meshVIs.end(), {
-						1 + (count * indexOffset),  0 + (count * indexOffset),  2 + (count * indexOffset),   3 + (count * indexOffset),  2 + (count * indexOffset),  0 + (count * indexOffset),   // Front
+				/*meshVIs.insert(meshVIs.end(), {
+						0 + (count * indexOffset),  1 + (count * indexOffset),  2 + (count * indexOffset),   0 + (count * indexOffset),  2 + (count * indexOffset),  3 + (count * indexOffset),   // Front
 						5 + (count * indexOffset),  4 + (count * indexOffset),  6 + (count * indexOffset),   7 + (count * indexOffset),  6 + (count * indexOffset),  4 + (count * indexOffset),   // Back
 						9 + (count * indexOffset),  8 + (count * indexOffset),  10 + (count * indexOffset),  11 + (count * indexOffset), 10 + (count * indexOffset), 8 + (count * indexOffset),   // Left
 						13 + (count * indexOffset), 12 + (count * indexOffset), 14 + (count * indexOffset),  15 + (count * indexOffset), 14 + (count * indexOffset), 12 + (count * indexOffset),   // Right
 						17 + (count * indexOffset), 16 + (count * indexOffset), 18 + (count * indexOffset),  19 + (count * indexOffset), 18 + (count * indexOffset), 16 + (count * indexOffset),   // Top
 						21 + (count * indexOffset), 20 + (count * indexOffset), 22 + (count * indexOffset),  23 + (count * indexOffset), 22 + (count * indexOffset), 20 + (count * indexOffset)    // Bottom
+					});*/
+				meshVIs.insert(meshVIs.end(), {
+					// z+  (normal  0,  0, +1)
+					0 + (count * indexOffset), 1 + (count * indexOffset), 2 + (count * indexOffset),
+					0 + (count * indexOffset), 2 + (count * indexOffset), 3 + (count * indexOffset),
+
+					// z-  (normal  0,  0, -1)
+					4 + (count * indexOffset), 5 + (count * indexOffset), 6 + (count * indexOffset),
+					4 + (count * indexOffset), 6 + (count * indexOffset), 7 + (count * indexOffset),
+
+					// x-  (normal -1,  0,  0)
+					8 + (count * indexOffset), 9 + (count * indexOffset), 10 + (count * indexOffset),
+					8 + (count * indexOffset), 10 + (count * indexOffset), 11 + (count * indexOffset),
+
+					// x+  (normal +1,  0,  0)
+					12 + (count * indexOffset), 13 + (count * indexOffset), 14 + (count * indexOffset),
+					12 + (count * indexOffset), 14 + (count * indexOffset), 15 + (count * indexOffset),
+
+					// y+  (normal  0, +1,  0)
+					16 + (count * indexOffset), 17 + (count * indexOffset), 18 + (count * indexOffset),
+					16 + (count * indexOffset), 18 + (count * indexOffset), 19 + (count * indexOffset),
+
+					// y-  (normal  0, -1,  0)
+					20 + (count * indexOffset), 21 + (count * indexOffset), 22 + (count * indexOffset),
+					20 + (count * indexOffset), 22 + (count * indexOffset), 23 + (count * indexOffset)
 					});
 				count++;
 			}

@@ -138,6 +138,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="source\DefaultShaderPass.cpp" />
+    <ClCompile Include="source\ShaderPass.cpp" />
+    <ClCompile Include="source\gBuffer.cpp" />
     <ClCompile Include="source\BlockPalette.cpp" />
     <ClCompile Include="source\Chunk.cpp" />
     <ClCompile Include="source\BlockGeneric.cpp" />
@@ -148,6 +151,9 @@
     <ClCompile Include="source\TerrainGenerator.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="source\DefaultShaderPass.h" />
+    <ClInclude Include="source\ShaderPass.h" />
+    <ClInclude Include="source\gBuffer.h" />
     <ClInclude Include="source\BlockPalette.h" />
     <ClInclude Include="source\Chunk.h" />
     <ClInclude Include="source\BlockGeneric.h" />
@@ -158,7 +164,10 @@
     <ClInclude Include="source\TerrainGenerator.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="shaders\deferredFrag.glsl" />
+    <None Include="shaders\deferredVert.glsl" />
     <None Include="shaders\frag.glsl" />
+    <None Include="shaders\gBufferFrag.glsl" />
     <None Include="shaders\vert.glsl" />
     <None Include="source\shaders\frag.glsl">
       <FileType>Document</FileType>

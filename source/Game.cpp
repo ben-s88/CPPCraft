@@ -112,19 +112,6 @@ bool Game::init(bool vsync)
 		std::cout << "Program failed to link: " << message << "\n";
 	}
 
-	/*std::vector<GLfloat> vertexData{ //u step 0.03125 - v step 0.0625
-	-1.f, -1.f, 1.f,     0.25f, 0.3125f, //0 bottom left
-	1.f, -1.f, 1.f,     0.28125f, 0.3125f, // bottom right
-	-1.f, 1.f, 1.f,     0.25f, 0.25f, // top left
-	1.f, 1.f, 1.f,     0.28125f, 0.25f, // top right
-
-	1.f, -1.f, -1.f,     0.28125f, 0.3125f, // bottom right back
-	1.f, 1.f, -1.f,     0.28125f, 0.25f, // top right back
-
-	-1.f, -1.f, -1.f,     0.25f, 0.3125f, // bottom left back
-	-1.f, 1.f, -1.f,     0.25f, 0.25f, //7 top left back
-	};*/
-
 	std::vector<GLfloat> vertexData{
 		// z+
 		0.0f, 0.0f,  0.0f,    0.25f, 0.3125f,
@@ -220,14 +207,7 @@ bool Game::init(bool vsync)
 	camera = new Camera(glm::vec3(0.f, 1.f, 3.f), 45.5f, (float)width / height, 0.1f, 300.f);
 	int platSize = 32;
 
-	siv::PerlinNoise perlin{ 1 };
-	int octaves = 4;
-	double heightFactor = 50;
-	float resolution = 200.f;
-	double noiseNum;
-
 	TG = std::shared_ptr<TerrainGenerator>(new TerrainGenerator(config["seed"]));
-	std::cout << config["seed"];
 
 	//Chunk* c;
 	#pragma omp parallel for
@@ -253,6 +233,17 @@ bool Game::init(bool vsync)
 	{
 		c->initBuffer();
 	}
+
+	GBuffer = new gBuffer(width, height);
+	defaultShaderPass = new DefaultShaderPass("shaders/vert.glsl", "shaders/frag.glsl");
+	//defaultShaderPass->use();
+
+	deferredGeometryPass = new DefaultShaderPass("shaders/vert.glsl", "shaders/gBufferFrag.glsl");
+	deferredGeometryPass->setInt("textureSampler", 0);
+	deferredLightingPass = new DefaultShaderPass("shaders/deferredVert.glsl", "shaders/deferredFrag.glsl");
+	deferredLightingPass->setInt("gPosition", 0);
+	deferredLightingPass->setInt("gNormal", 1);
+	deferredLightingPass->setInt("gAlbedo", 2);
 
 	return true;
 }
@@ -328,35 +319,75 @@ void Game::draw()
 
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-	glUseProgram(programID);
+	//glUseProgram(programID);
+	//defaultShaderPass->use();
+
+	GBuffer->bind();
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+	currentShader = deferredGeometryPass->use();
 
 	GLint ModelMatrixLocation = glGetUniformLocation(programID, "modelMatrix");
 
 	GLint PerspectiveMatrixLocation = glGetUniformLocation(programID, "perspective");
-	glProgramUniformMatrix4fv(programID, PerspectiveMatrixLocation, 1, GL_FALSE, glm::value_ptr(camera->perspective));
+	currentShader->setMat4("perspective", glm::value_ptr(camera->perspective));
 
 	glm::mat4 view = camera->getViewMatrix();
 	GLint ViewMatrixLocation = glGetUniformLocation(programID, "view");
-	glProgramUniformMatrix4fv(programID, ViewMatrixLocation, 1, GL_FALSE, glm::value_ptr(view));
+	currentShader->setMat4("view", glm::value_ptr(view));
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, TO);
 
 	GLint textureSampler = glGetUniformLocation(programID, "textureSampler");
 	glUniform1i(textureSampler, 0);
-
-	//glBindVertexArray(VAO);
-	//glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	//currentShader->setInt("textureSampler", 0);
 
 	glEnable(GL_DEPTH_TEST);
 
 	glEnable(GL_CULL_FACE);
-	glCullFace(GL_FRONT);
+	glCullFace(GL_BACK);
 	
+	 
 	for (Chunk* c : chunks){
-		glProgramUniformMatrix4fv(programID, ModelMatrixLocation, 1, GL_FALSE, glm::value_ptr(c->getModelMatrix()));
+		currentShader->setMat4("modelMatrix", glm::value_ptr(c->getModelMatrix()));
 		c->draw();
 	}
+
+	//lighting pass
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+	currentShader = deferredLightingPass->use();
+	GBuffer->bindTextures();
+
+	renderQuad();
+}
+
+void Game::renderQuad()
+{
+	if (quadVAO == 0)
+	{
+		float quadVertices[] = {
+			// positions        // texture Coords
+			-1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
+			-1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+			 1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
+			 1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+		};
+		// setup plane VAO
+		glGenVertexArrays(1, &quadVAO);
+		glGenBuffers(1, &quadVBO);
+		glBindVertexArray(quadVAO);
+		glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+	}
+	glBindVertexArray(quadVAO);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	glBindVertexArray(0);
 }
 
 void Game::cleanUp()

@@ -15,8 +15,8 @@ out vec3 Normal;
 void main()
 {
 	texCords = textureCords;
-	fragPos = vec3(modelMatrix * vec4(position, 1.0f));
-	Normal = normal;
+	fragPos = vec3(view * modelMatrix * vec4(position, 1.0f));
+	Normal = mat3(transpose(inverse(view * modelMatrix))) * normal;
 
 	vec4 newPosition = perspective * view * modelMatrix * vec4(position, 1.0f);
 

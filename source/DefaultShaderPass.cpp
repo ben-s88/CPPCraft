@@ -17,7 +17,7 @@ DefaultShaderPass::DefaultShaderPass(std::string vertFilePath, std::string fragF
 		GLsizei log_length = 0;
 		GLchar message[1024];
 		glGetShaderInfoLog(vertexShader, 1024, &log_length, message);
-		std::cout << "Vertex shader failed to compile: " << message << "\n";
+		std::cout << "Vertex shader failed to compile: " << vertFilePath << " " << message << "\n";
 	}
 
 	std::string fragmentShaderSource = loadShaderFromFile(fragFilePath);
@@ -34,7 +34,7 @@ DefaultShaderPass::DefaultShaderPass(std::string vertFilePath, std::string fragF
 		GLsizei log_length = 0;
 		GLchar message[1024];
 		glGetShaderInfoLog(fragmentShader, 1024, &log_length, message);
-		std::cout << "Fragment shader failed to compile: " << message << "\n";
+		std::cout << "Fragment shader failed to compile: " << fragFilePath << " " << message << "\n";
 	}
 
 	programID = glCreateProgram();

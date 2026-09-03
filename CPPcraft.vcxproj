@@ -168,6 +168,8 @@
     <None Include="shaders\deferredVert.glsl" />
     <None Include="shaders\frag.glsl" />
     <None Include="shaders\gBufferFrag.glsl" />
+    <None Include="shaders\ssaoFrag.glsl" />
+    <None Include="shaders\ssaoVert.glsl" />
     <None Include="shaders\vert.glsl" />
     <None Include="source\shaders\frag.glsl">
       <FileType>Document</FileType>

@@ -18,3 +18,10 @@ void ShaderPass::setInt(std::string name, int value)
 
 	glProgramUniform1i(programID, location, value);
 }
+
+void ShaderPass::setVec3(std::string name, const glm::f32* valuePtr)
+{
+	GLint location = glGetUniformLocation(programID, name.c_str());
+
+	glProgramUniform3fv(programID, location, 1, valuePtr);
+}

@@ -92,6 +92,8 @@
     <None Include="shaders\gBufferFrag.glsl" />
     <None Include="shaders\deferredFrag.glsl" />
     <None Include="shaders\deferredVert.glsl" />
+    <None Include="shaders\ssaoFrag.glsl" />
+    <None Include="shaders\ssaoVert.glsl" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="CPPcraft.rc">

@@ -11,6 +11,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <random>
 #include <json.hpp>
 using json = nlohmann::json;
 
@@ -66,11 +67,16 @@ private:
 	DefaultShaderPass* deferredGeometryPass = nullptr;
 	DefaultShaderPass* deferredLightingPass = nullptr;
 
-	GLuint programID = 0;
-
-	GLuint VAO = 0;
-	GLuint VBO = 0;
-	GLuint IBO = 0;
+	//graphics features
+	bool SSAO = true;
+	GLuint ssaoFBO, ssaoBlurFBO;
+	GLuint ssaoColourBuffer, ssaoBlurColourBuffer;
+	std::uniform_real_distribution<GLfloat>* randomFloats;
+	std::vector<glm::vec3> ssaoKernel;
+	std::vector<glm::vec3> ssaoNoise;
+	GLuint ssaoNoiseTexture;
+	DefaultShaderPass* ssaoPass = nullptr;
+		
 	GLuint TO = 0;
 
 	GLuint quadVAO = 0;

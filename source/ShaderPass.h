@@ -19,8 +19,14 @@ public:
 
 	void setMat4(std::string name, const glm::f32* valuePtr);
 	void setMat4(GLint name, const glm::f32* valuePtr);
+	void setVec3(std::string name, const glm::f32* valuePtr);
 
 	void setInt(std::string name, int value);
+
+	GLuint getProgramID()
+	{
+		return programID;
+	}
 protected:
 	std::string loadShaderFromFile(std::string fileName)
 	{

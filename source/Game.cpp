@@ -62,110 +62,12 @@ bool Game::init(bool vsync)
 		return false;
 	}
 
-	std::string vertexShaderSource = loadShaderFromFile("shaders/vert.glsl");
-	auto vertexShaderSourcePTR = vertexShaderSource.c_str();
-
-	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vertexShader, 1, &vertexShaderSourcePTR, NULL);
-	glCompileShader(vertexShader);
-
-	GLint vertexCompiled;
-	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &vertexCompiled);
-	if (vertexCompiled != GL_TRUE)
-	{
-		GLsizei log_length = 0;
-		GLchar message[1024];
-		glGetShaderInfoLog(vertexShader, 1024, &log_length, message);
-		std::cout << "Vertex shader failed to compile: " << message << "\n";
-	}
-
-	std::string fragmentShaderSource = loadShaderFromFile("shaders/frag.glsl");
-	auto fragmentShaderSourcePTR = fragmentShaderSource.c_str();
-
-	GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragmentShader, 1, &fragmentShaderSourcePTR, NULL);
-	glCompileShader(fragmentShader);
-
-	GLint fragmentCompiled;
-	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &fragmentCompiled);
-	if (fragmentCompiled != GL_TRUE)
-	{
-		GLsizei log_length = 0;
-		GLchar message[1024];
-		glGetShaderInfoLog(fragmentShader, 1024, &log_length, message);
-		std::cout << "Fragment shader failed to compile: " << message << "\n";
-	}
-
-	programID = glCreateProgram();
-
-	glAttachShader(programID, vertexShader);
-	glAttachShader(programID, fragmentShader);
-	glLinkProgram(programID);
-
-	GLint program_linked;
-	glGetProgramiv(programID, GL_LINK_STATUS, &program_linked);
-	if (program_linked != GL_TRUE)
-	{
-		GLsizei log_length = 0;
-		GLchar message[1024];
-		glGetProgramInfoLog(programID, 1024, &log_length, message);
-		std::cout << "Program failed to link: " << message << "\n";
-	}
-
-	std::vector<GLfloat> vertexData{
-		// z+
-		0.0f, 0.0f,  0.0f,    0.25f, 0.3125f,
-		1.0f, 0.0f,  0.0f,    0.28125f, 0.3125f,
-		1.0f, 1.0f,  0.0f,    0.28125f, 0.25f,
-		0.0f, 1.0f,  0.0f,    0.25f, 0.25f,
-
-		// z-
-		1.0f, 0.0f, -1.0f,    0.25f, 0.3125f,
-		0.0f, 0.0f, -1.0f,    0.28125f, 0.3125f,
-		0.0f, 1.0f, -1.0f,    0.28125f, 0.25f,
-		1.0f, 1.0f, -1.0f,    0.25f, 0.25f,
-
-		//x-
-		0.0f, 0.0f, -1.0f,    0.25f, 0.3125f,
-		0.0f, 0.0f,  0.0f,    0.28125f, 0.3125f,
-		0.0f, 1.0f,  0.0f,    0.28125f, 0.25f,
-		0.0f, 1.0f, -1.0f,    0.25f, 0.25f,
-
-		//x+
-		1.0f, 0.0f,  0.0f,    0.25f, 0.3125f,
-		1.0f, 0.0f, -1.0f,    0.28125f, 0.3125f,
-		1.0f, 1.0f, -1.0f,    0.28125f, 0.25f,
-		1.0f, 1.0f,  0.0f,    0.25f, 0.25f,
-
-		//y+
-		0.0f, 1.0f,  0.0f,    0.25f, 0.3125f,
-		1.0f, 1.0f,  0.0f,    0.28125f, 0.3125f,
-		1.0f, 1.0f, -1.0f,    0.28125f, 0.25f,
-		0.0f, 1.0f, -1.0f,    0.25f, 0.25f,
-
-		//y-
-		0.0f, 0.0f, -1.0f,    0.25f, 0.3125f,
-		1.0f, 0.0f, -1.0f,    0.28125f, 0.3125f,
-		1.0f, 0.0f,  0.0f,    0.28125f, 0.25f,
-		0.0f, 0.0f,  0.0f,    0.25f, 0.25f,
-	};
-
-
-	std::vector<GLuint> vertexIndicies{ // block atlas is 32(23 textures + white space)x16 - each texture 16x16 pixel 
-		1,  0,  2,   3,  2,  0,   // Front
-		5,  4,  6,   7,  6,  4,   // Back
-		9,  8,  10,  11, 10, 8,   // Left
-		13, 12, 14,  15, 14, 12,   // Right
-		17, 16, 18,  19, 18, 16,   // Top
-		21, 20, 22,  23, 22, 20    // Bottom
-	};
-
 	SDL_Surface* textureAtlasSurface = IMG_Load("blocks-atlas.png");
 
 	glGenTextures(1, &TO);
 	glBindTexture(GL_TEXTURE_2D, TO);
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LOD, 4);
@@ -179,30 +81,62 @@ bool Game::init(bool vsync)
 	glBindTexture(GL_TEXTURE_2D, 0);
 	SDL_FreeSurface(textureAtlasSurface);
 
-	glGenVertexArrays(1, &VAO);
-	glBindVertexArray(VAO);
+	//ssao set up
+	glGenFramebuffers(1, &ssaoFBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, ssaoFBO);
 
-	glGenBuffers(1, &VBO);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, vertexData.size() * sizeof(GLfloat), vertexData.data(), GL_STATIC_DRAW);
+	glGenTextures(1, &ssaoColourBuffer);
+	glBindTexture(GL_TEXTURE_2D, ssaoColourBuffer);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssaoColourBuffer, 0);
 
-	glGenBuffers(1, &IBO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, vertexIndicies.size() * sizeof(GLuint), vertexIndicies.data(), GL_STATIC_DRAW);
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+	{
+		std::cout << "SSAO colour framebuffer not complete" << "\n";
+	}
 
+	//add blur stage later
+	std::uniform_real_distribution<GLfloat> rf(0.0, 1.0);
+	std::default_random_engine generator;
+	randomFloats = &rf;
+	
+	for (int i = 0; i < 64; i++)
+	{
+		glm::vec3 sample{
+			(*randomFloats)(generator) * 2.0 - 1.0f,
+			(*randomFloats)(generator) * 2.0 - 1.0f,
+			(*randomFloats)(generator)
+		};
+		sample = glm::normalize(sample);
+		sample *= (*randomFloats)(generator);
+		float scale = i / 64.f;
+		scale *= scale * scale;
 
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 5, 0);
+		scale = 0.1f + (scale * (1.0f - 0.1f));
+		sample *= scale;
 
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 5, (void*)(sizeof(GLfloat) * 3));
+		ssaoKernel.push_back(sample);
+	}
 
-	glBindVertexArray(0);
-	glDisableVertexAttribArray(0);
-	glDisableVertexAttribArray(1);
+	for (int i = 0; i < 16; i++)
+	{
+		glm::vec3 noise(
+			(*randomFloats)(generator) * 2.0 - 1.0f,
+			(*randomFloats)(generator) * 2.0 - 1.0f,
+			0.0f);
+		ssaoNoise.push_back(noise);
+	}
 
-	GLint lightPosUniform = glGetUniformLocation(programID, "lightPos");
-	glUniform3f(programID, 0.f, 10.f, 0.f);
+	glGenTextures(1, &ssaoNoiseTexture);
+	glBindTexture(GL_TEXTURE_2D, ssaoNoiseTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, 4, 4, 0, GL_RGB, GL_FLOAT, ssaoNoise.data());
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glBindTexture(GL_TEXTURE_2D, 0);
 
 	camera = new Camera(glm::vec3(0.f, 1.f, 3.f), 45.5f, (float)width / height, 0.1f, 300.f);
 	int platSize = 32;
@@ -240,10 +174,16 @@ bool Game::init(bool vsync)
 
 	deferredGeometryPass = new DefaultShaderPass("shaders/vert.glsl", "shaders/gBufferFrag.glsl");
 	deferredGeometryPass->setInt("textureSampler", 0);
+
 	deferredLightingPass = new DefaultShaderPass("shaders/deferredVert.glsl", "shaders/deferredFrag.glsl");
 	deferredLightingPass->setInt("gPosition", 0);
 	deferredLightingPass->setInt("gNormal", 1);
 	deferredLightingPass->setInt("gAlbedo", 2);
+
+	ssaoPass = new DefaultShaderPass("shaders/ssaoVert.glsl", "shaders/ssaoFrag.glsl");
+	ssaoPass->setInt("gPosition", 0);
+	ssaoPass->setInt("gNormal", 1);
+	ssaoPass->setInt("gAlbedo", 2);
 
 	return true;
 }
@@ -319,28 +259,19 @@ void Game::draw()
 
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-	//glUseProgram(programID);
-	//defaultShaderPass->use();
-
 	GBuffer->bind();
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 	currentShader = deferredGeometryPass->use();
 
-	GLint ModelMatrixLocation = glGetUniformLocation(programID, "modelMatrix");
-
-	GLint PerspectiveMatrixLocation = glGetUniformLocation(programID, "perspective");
 	currentShader->setMat4("perspective", glm::value_ptr(camera->perspective));
 
 	glm::mat4 view = camera->getViewMatrix();
-	GLint ViewMatrixLocation = glGetUniformLocation(programID, "view");
 	currentShader->setMat4("view", glm::value_ptr(view));
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, TO);
 
-	GLint textureSampler = glGetUniformLocation(programID, "textureSampler");
-	glUniform1i(textureSampler, 0);
-	//currentShader->setInt("textureSampler", 0);
+	currentShader->setInt("textureSampler", 0);
 
 	glEnable(GL_DEPTH_TEST);
 
@@ -353,12 +284,36 @@ void Game::draw()
 		c->draw();
 	}
 
+	//ssao pass
+	glBindFramebuffer(GL_FRAMEBUFFER, ssaoFBO);
+	glClear(GL_COLOR_BUFFER_BIT);
+	currentShader = ssaoPass->use();
+
+	for (int i = 0; i < 64; i++)
+	{
+		currentShader->setVec3("samples[" + std::to_string(i) + "]", glm::value_ptr(ssaoKernel[i]));
+	}
+	currentShader->setMat4("perspective", glm::value_ptr(camera->perspective));
+	currentShader->setMat4("view", glm::value_ptr(view));
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, GBuffer->gPosition);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, GBuffer->gNormal);
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, ssaoNoiseTexture);
+	renderQuad();
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 	//lighting pass
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 	currentShader = deferredLightingPass->use();
 	GBuffer->bindTextures();
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D, ssaoColourBuffer);
+	currentShader->setInt("ssao", 3);
 
 	renderQuad();
 }
@@ -401,4 +356,9 @@ void Game::cleanUp()
 
 	delete camera;
 	delete myChunk;
+
+	delete GBuffer;
+	delete defaultShaderPass;
+	delete deferredGeometryPass;
+	delete deferredLightingPass;
 }

@@ -28,11 +28,12 @@ public:
 		glActiveTexture(GL_TEXTURE2);
 		glBindTexture(GL_TEXTURE_2D, gAlbedo);
 	}
-private:
-	GLuint _gBuffer;
+
 	GLuint gPosition;
 	GLuint gNormal;
 	GLuint gAlbedo;
+private:
+	GLuint _gBuffer;
 	GLuint rboDepth;
 };
 

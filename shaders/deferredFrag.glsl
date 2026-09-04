@@ -20,9 +20,9 @@ void main()
 	vec3 lightDir = normalize(LightPos - FragPos);
 
 	float diff = max(dot(Normal, lightDir), 0.0f);
-	vec3 diffuse = diff * vec3(0.6, 0.59, 0.4);
+	vec3 diffuse = diff * vec3(0.3, 0.29, 0.1);
 	vec3 ambientColour = ambient * vec3(0.82, 0.82, 0.52);
 
-	vec3 result = (ambient) * Albedo.rgb;
+	vec3 result = (ambient + diffuse) * Albedo.rgb;
 	FragColour = vec4(result, 1.0f);
 }

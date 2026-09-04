@@ -67,7 +67,7 @@ bool Game::init(bool vsync)
 	glGenTextures(1, &TO);
 	glBindTexture(GL_TEXTURE_2D, TO);
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LOD, 4);
@@ -91,6 +91,16 @@ bool Game::init(bool vsync)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssaoColourBuffer, 0);
+
+	glGenFramebuffers(1, &ssaoBlurFBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, ssaoBlurFBO);
+
+	glGenTextures(1, &ssaoBlurColourBuffer);
+	glBindTexture(GL_TEXTURE_2D, ssaoBlurColourBuffer);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssaoBlurColourBuffer, 0);
 
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 	{
@@ -184,6 +194,9 @@ bool Game::init(bool vsync)
 	ssaoPass->setInt("gPosition", 0);
 	ssaoPass->setInt("gNormal", 1);
 	ssaoPass->setInt("gAlbedo", 2);
+
+	ssaoBlurPass = new DefaultShaderPass("shaders/ssaoVert.glsl", "shaders/ssaoBlurFrag.glsl");
+	ssaoBlurPass->setInt("ssaoInput", 0);
 
 	return true;
 }
@@ -305,6 +318,16 @@ void Game::draw()
 	renderQuad();
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+	//ssao blur pass
+
+	glBindFramebuffer(GL_FRAMEBUFFER, ssaoBlurFBO);
+	glClear(GL_COLOR_BUFFER_BIT);
+	currentShader = ssaoBlurPass->use();
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, ssaoColourBuffer);
+	renderQuad();
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 	//lighting pass
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -312,7 +335,7 @@ void Game::draw()
 	currentShader = deferredLightingPass->use();
 	GBuffer->bindTextures();
 	glActiveTexture(GL_TEXTURE3);
-	glBindTexture(GL_TEXTURE_2D, ssaoColourBuffer);
+	glBindTexture(GL_TEXTURE_2D, ssaoBlurColourBuffer);
 	currentShader->setInt("ssao", 3);
 
 	renderQuad();

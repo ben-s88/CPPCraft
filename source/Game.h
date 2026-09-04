@@ -76,6 +76,7 @@ private:
 	std::vector<glm::vec3> ssaoNoise;
 	GLuint ssaoNoiseTexture;
 	DefaultShaderPass* ssaoPass = nullptr;
+	DefaultShaderPass* ssaoBlurPass = nullptr;
 		
 	GLuint TO = 0;
 

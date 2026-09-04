@@ -45,6 +45,7 @@ void main()
         occlusion += (sampleDepth >= samplePos.z + bias ? 1.0 : 0.0) * rangeCheck;      
     }
     occlusion = 1.0 - (occlusion / kernelSize);
+    //occlusion = (length(fragPos) < 50 ? occlusion : 0.0);
     
-    FragColor = occlusion;
+    FragColor = pow(occlusion, 2.5);
 }

@@ -62,117 +62,6 @@ bool Game::init(bool vsync)
 		return false;
 	}
 
-	std::string vertexShaderSource = loadShaderFromFile("shaders/vert.glsl");
-	auto vertexShaderSourcePTR = vertexShaderSource.c_str();
-
-	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vertexShader, 1, &vertexShaderSourcePTR, NULL);
-	glCompileShader(vertexShader);
-
-	GLint vertexCompiled;
-	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &vertexCompiled);
-	if (vertexCompiled != GL_TRUE)
-	{
-		GLsizei log_length = 0;
-		GLchar message[1024];
-		glGetShaderInfoLog(vertexShader, 1024, &log_length, message);
-		std::cout << "Vertex shader failed to compile: " << message << "\n";
-	}
-
-	std::string fragmentShaderSource = loadShaderFromFile("shaders/frag.glsl");
-	auto fragmentShaderSourcePTR = fragmentShaderSource.c_str();
-
-	GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragmentShader, 1, &fragmentShaderSourcePTR, NULL);
-	glCompileShader(fragmentShader);
-
-	GLint fragmentCompiled;
-	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &fragmentCompiled);
-	if (fragmentCompiled != GL_TRUE)
-	{
-		GLsizei log_length = 0;
-		GLchar message[1024];
-		glGetShaderInfoLog(fragmentShader, 1024, &log_length, message);
-		std::cout << "Fragment shader failed to compile: " << message << "\n";
-	}
-
-	programID = glCreateProgram();
-
-	glAttachShader(programID, vertexShader);
-	glAttachShader(programID, fragmentShader);
-	glLinkProgram(programID);
-
-	GLint program_linked;
-	glGetProgramiv(programID, GL_LINK_STATUS, &program_linked);
-	if (program_linked != GL_TRUE)
-	{
-		GLsizei log_length = 0;
-		GLchar message[1024];
-		glGetProgramInfoLog(programID, 1024, &log_length, message);
-		std::cout << "Program failed to link: " << message << "\n";
-	}
-
-	/*std::vector<GLfloat> vertexData{ //u step 0.03125 - v step 0.0625
-	-1.f, -1.f, 1.f,     0.25f, 0.3125f, //0 bottom left
-	1.f, -1.f, 1.f,     0.28125f, 0.3125f, // bottom right
-	-1.f, 1.f, 1.f,     0.25f, 0.25f, // top left
-	1.f, 1.f, 1.f,     0.28125f, 0.25f, // top right
-
-	1.f, -1.f, -1.f,     0.28125f, 0.3125f, // bottom right back
-	1.f, 1.f, -1.f,     0.28125f, 0.25f, // top right back
-
-	-1.f, -1.f, -1.f,     0.25f, 0.3125f, // bottom left back
-	-1.f, 1.f, -1.f,     0.25f, 0.25f, //7 top left back
-	};*/
-
-	std::vector<GLfloat> vertexData{
-		// z+
-		0.0f, 0.0f,  0.0f,    0.25f, 0.3125f,
-		1.0f, 0.0f,  0.0f,    0.28125f, 0.3125f,
-		1.0f, 1.0f,  0.0f,    0.28125f, 0.25f,
-		0.0f, 1.0f,  0.0f,    0.25f, 0.25f,
-
-		// z-
-		1.0f, 0.0f, -1.0f,    0.25f, 0.3125f,
-		0.0f, 0.0f, -1.0f,    0.28125f, 0.3125f,
-		0.0f, 1.0f, -1.0f,    0.28125f, 0.25f,
-		1.0f, 1.0f, -1.0f,    0.25f, 0.25f,
-
-		//x-
-		0.0f, 0.0f, -1.0f,    0.25f, 0.3125f,
-		0.0f, 0.0f,  0.0f,    0.28125f, 0.3125f,
-		0.0f, 1.0f,  0.0f,    0.28125f, 0.25f,
-		0.0f, 1.0f, -1.0f,    0.25f, 0.25f,
-
-		//x+
-		1.0f, 0.0f,  0.0f,    0.25f, 0.3125f,
-		1.0f, 0.0f, -1.0f,    0.28125f, 0.3125f,
-		1.0f, 1.0f, -1.0f,    0.28125f, 0.25f,
-		1.0f, 1.0f,  0.0f,    0.25f, 0.25f,
-
-		//y+
-		0.0f, 1.0f,  0.0f,    0.25f, 0.3125f,
-		1.0f, 1.0f,  0.0f,    0.28125f, 0.3125f,
-		1.0f, 1.0f, -1.0f,    0.28125f, 0.25f,
-		0.0f, 1.0f, -1.0f,    0.25f, 0.25f,
-
-		//y-
-		0.0f, 0.0f, -1.0f,    0.25f, 0.3125f,
-		1.0f, 0.0f, -1.0f,    0.28125f, 0.3125f,
-		1.0f, 0.0f,  0.0f,    0.28125f, 0.25f,
-		0.0f, 0.0f,  0.0f,    0.25f, 0.25f,
-	};
-
-
-	std::vector<GLuint> vertexIndicies{ // block atlas is 32(23 textures + white space)x16 - each texture 16x16 pixel 
-		1,  0,  2,   3,  2,  0,   // Front
-		5,  4,  6,   7,  6,  4,   // Back
-		9,  8,  10,  11, 10, 8,   // Left
-		13, 12, 14,  15, 14, 12,   // Right
-		17, 16, 18,  19, 18, 16,   // Top
-		21, 20, 22,  23, 22, 20    // Bottom
-	};
-
 	SDL_Surface* textureAtlasSurface = IMG_Load("blocks-atlas.png");
 
 	glGenTextures(1, &TO);
@@ -192,42 +81,77 @@ bool Game::init(bool vsync)
 	glBindTexture(GL_TEXTURE_2D, 0);
 	SDL_FreeSurface(textureAtlasSurface);
 
-	glGenVertexArrays(1, &VAO);
-	glBindVertexArray(VAO);
+	//ssao set up
+	glGenFramebuffers(1, &ssaoFBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, ssaoFBO);
 
-	glGenBuffers(1, &VBO);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, vertexData.size() * sizeof(GLfloat), vertexData.data(), GL_STATIC_DRAW);
+	glGenTextures(1, &ssaoColourBuffer);
+	glBindTexture(GL_TEXTURE_2D, ssaoColourBuffer);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssaoColourBuffer, 0);
 
-	glGenBuffers(1, &IBO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, vertexIndicies.size() * sizeof(GLuint), vertexIndicies.data(), GL_STATIC_DRAW);
+	glGenFramebuffers(1, &ssaoBlurFBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, ssaoBlurFBO);
 
+	glGenTextures(1, &ssaoBlurColourBuffer);
+	glBindTexture(GL_TEXTURE_2D, ssaoBlurColourBuffer);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssaoBlurColourBuffer, 0);
 
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 5, 0);
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+	{
+		std::cout << "SSAO colour framebuffer not complete" << "\n";
+	}
 
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 5, (void*)(sizeof(GLfloat) * 3));
+	//add blur stage later
+	std::uniform_real_distribution<GLfloat> rf(0.0, 1.0);
+	std::default_random_engine generator;
+	randomFloats = &rf;
+	
+	for (int i = 0; i < 64; i++)
+	{
+		glm::vec3 sample{
+			(*randomFloats)(generator) * 2.0 - 1.0f,
+			(*randomFloats)(generator) * 2.0 - 1.0f,
+			(*randomFloats)(generator)
+		};
+		sample = glm::normalize(sample);
+		sample *= (*randomFloats)(generator);
+		float scale = i / 64.f;
+		scale *= scale * scale;
 
-	glBindVertexArray(0);
-	glDisableVertexAttribArray(0);
-	glDisableVertexAttribArray(1);
+		scale = 0.1f + (scale * (1.0f - 0.1f));
+		sample *= scale;
 
-	GLint lightPosUniform = glGetUniformLocation(programID, "lightPos");
-	glUniform3f(programID, 0.f, 10.f, 0.f);
+		ssaoKernel.push_back(sample);
+	}
+
+	for (int i = 0; i < 16; i++)
+	{
+		glm::vec3 noise(
+			(*randomFloats)(generator) * 2.0 - 1.0f,
+			(*randomFloats)(generator) * 2.0 - 1.0f,
+			0.0f);
+		ssaoNoise.push_back(noise);
+	}
+
+	glGenTextures(1, &ssaoNoiseTexture);
+	glBindTexture(GL_TEXTURE_2D, ssaoNoiseTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, 4, 4, 0, GL_RGB, GL_FLOAT, ssaoNoise.data());
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glBindTexture(GL_TEXTURE_2D, 0);
 
 	camera = new Camera(glm::vec3(0.f, 1.f, 3.f), 45.5f, (float)width / height, 0.1f, 300.f);
 	int platSize = 32;
 
-	siv::PerlinNoise perlin{ 1 };
-	int octaves = 4;
-	double heightFactor = 50;
-	float resolution = 200.f;
-	double noiseNum;
-
 	TG = std::shared_ptr<TerrainGenerator>(new TerrainGenerator(config["seed"]));
-	std::cout << config["seed"];
 
 	//Chunk* c;
 	#pragma omp parallel for
@@ -253,6 +177,26 @@ bool Game::init(bool vsync)
 	{
 		c->initBuffer();
 	}
+
+	GBuffer = new gBuffer(width, height);
+	defaultShaderPass = new DefaultShaderPass("shaders/vert.glsl", "shaders/frag.glsl");
+	//defaultShaderPass->use();
+
+	deferredGeometryPass = new DefaultShaderPass("shaders/vert.glsl", "shaders/gBufferFrag.glsl");
+	deferredGeometryPass->setInt("textureSampler", 0);
+
+	deferredLightingPass = new DefaultShaderPass("shaders/deferredVert.glsl", "shaders/deferredFrag.glsl");
+	deferredLightingPass->setInt("gPosition", 0);
+	deferredLightingPass->setInt("gNormal", 1);
+	deferredLightingPass->setInt("gAlbedo", 2);
+
+	ssaoPass = new DefaultShaderPass("shaders/ssaoVert.glsl", "shaders/ssaoFrag.glsl");
+	ssaoPass->setInt("gPosition", 0);
+	ssaoPass->setInt("gNormal", 1);
+	ssaoPass->setInt("gAlbedo", 2);
+
+	ssaoBlurPass = new DefaultShaderPass("shaders/ssaoVert.glsl", "shaders/ssaoBlurFrag.glsl");
+	ssaoBlurPass->setInt("ssaoInput", 0);
 
 	return true;
 }
@@ -328,35 +272,100 @@ void Game::draw()
 
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-	glUseProgram(programID);
+	GBuffer->bind();
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+	currentShader = deferredGeometryPass->use();
 
-	GLint ModelMatrixLocation = glGetUniformLocation(programID, "modelMatrix");
-
-	GLint PerspectiveMatrixLocation = glGetUniformLocation(programID, "perspective");
-	glProgramUniformMatrix4fv(programID, PerspectiveMatrixLocation, 1, GL_FALSE, glm::value_ptr(camera->perspective));
+	currentShader->setMat4("perspective", glm::value_ptr(camera->perspective));
 
 	glm::mat4 view = camera->getViewMatrix();
-	GLint ViewMatrixLocation = glGetUniformLocation(programID, "view");
-	glProgramUniformMatrix4fv(programID, ViewMatrixLocation, 1, GL_FALSE, glm::value_ptr(view));
+	currentShader->setMat4("view", glm::value_ptr(view));
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, TO);
 
-	GLint textureSampler = glGetUniformLocation(programID, "textureSampler");
-	glUniform1i(textureSampler, 0);
-
-	//glBindVertexArray(VAO);
-	//glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	currentShader->setInt("textureSampler", 0);
 
 	glEnable(GL_DEPTH_TEST);
 
 	glEnable(GL_CULL_FACE);
-	glCullFace(GL_FRONT);
+	glCullFace(GL_BACK);
 	
+	 
 	for (Chunk* c : chunks){
-		glProgramUniformMatrix4fv(programID, ModelMatrixLocation, 1, GL_FALSE, glm::value_ptr(c->getModelMatrix()));
+		currentShader->setMat4("modelMatrix", glm::value_ptr(c->getModelMatrix()));
 		c->draw();
 	}
+
+	//ssao pass
+	glBindFramebuffer(GL_FRAMEBUFFER, ssaoFBO);
+	glClear(GL_COLOR_BUFFER_BIT);
+	currentShader = ssaoPass->use();
+
+	for (int i = 0; i < 64; i++)
+	{
+		currentShader->setVec3("samples[" + std::to_string(i) + "]", glm::value_ptr(ssaoKernel[i]));
+	}
+	currentShader->setMat4("perspective", glm::value_ptr(camera->perspective));
+	currentShader->setMat4("view", glm::value_ptr(view));
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, GBuffer->gPosition);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, GBuffer->gNormal);
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, ssaoNoiseTexture);
+	renderQuad();
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	//ssao blur pass
+
+	glBindFramebuffer(GL_FRAMEBUFFER, ssaoBlurFBO);
+	glClear(GL_COLOR_BUFFER_BIT);
+	currentShader = ssaoBlurPass->use();
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, ssaoColourBuffer);
+	renderQuad();
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	//lighting pass
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+	currentShader = deferredLightingPass->use();
+	GBuffer->bindTextures();
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D, ssaoBlurColourBuffer);
+	currentShader->setInt("ssao", 3);
+
+	renderQuad();
+}
+
+void Game::renderQuad()
+{
+	if (quadVAO == 0)
+	{
+		float quadVertices[] = {
+			// positions        // texture Coords
+			-1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
+			-1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+			 1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
+			 1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+		};
+		// setup plane VAO
+		glGenVertexArrays(1, &quadVAO);
+		glGenBuffers(1, &quadVBO);
+		glBindVertexArray(quadVAO);
+		glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+	}
+	glBindVertexArray(quadVAO);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	glBindVertexArray(0);
 }
 
 void Game::cleanUp()
@@ -370,4 +379,9 @@ void Game::cleanUp()
 
 	delete camera;
 	delete myChunk;
+
+	delete GBuffer;
+	delete defaultShaderPass;
+	delete deferredGeometryPass;
+	delete deferredLightingPass;
 }

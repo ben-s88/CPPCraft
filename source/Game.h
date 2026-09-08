@@ -11,12 +11,15 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <random>
 #include <json.hpp>
 using json = nlohmann::json;
 
 #include <Camera.h>
 #include <BlockGeneric.h>
 #include <Chunk.h>
+#include <gBuffer.h>
+#include <DefaultShaderPass.h>
 
 class TerrainGenerator;
 class Game
@@ -31,9 +34,6 @@ public:
 	void draw();
 
 	void cleanUp();
-
-	void printProgramLog(GLuint program);
-	void printShaderLog(GLuint shader);
 
 	void setWindowTitle(const char* title)
 	{
@@ -61,12 +61,28 @@ private:
 
 	std::vector<BlockGeneric> blocks;
 
-	GLuint programID = 0;
+	gBuffer* GBuffer = nullptr;
+	ShaderPass* currentShader = nullptr;
+	DefaultShaderPass* defaultShaderPass = nullptr;
+	DefaultShaderPass* deferredGeometryPass = nullptr;
+	DefaultShaderPass* deferredLightingPass = nullptr;
 
-	GLuint VAO = 0;
-	GLuint VBO = 0;
-	GLuint IBO = 0;
+	//graphics features
+	bool SSAO = true;
+	GLuint ssaoFBO, ssaoBlurFBO;
+	GLuint ssaoColourBuffer, ssaoBlurColourBuffer;
+	std::uniform_real_distribution<GLfloat>* randomFloats;
+	std::vector<glm::vec3> ssaoKernel;
+	std::vector<glm::vec3> ssaoNoise;
+	GLuint ssaoNoiseTexture;
+	DefaultShaderPass* ssaoPass = nullptr;
+	DefaultShaderPass* ssaoBlurPass = nullptr;
+		
 	GLuint TO = 0;
+
+	GLuint quadVAO = 0;
+	GLuint quadVBO = 0;
+	void renderQuad();
 
 
 	std::string loadShaderFromFile(std::string fileName)
